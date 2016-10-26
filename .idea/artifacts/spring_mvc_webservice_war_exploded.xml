@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
   <artifact type="exploded-war" name="spring_mvc_webservice:war exploded">
-    <output-path>$PROJECT_DIR$/target/pst</output-path>
+    <output-path>D:/apache-tomcat-8.0.35/webapps/spring_mvc_webservice</output-path>
     <root id="root">
       <element id="directory" name="WEB-INF">
         <element id="directory" name="classes">

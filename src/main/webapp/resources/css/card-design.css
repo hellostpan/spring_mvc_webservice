@@ -1,0 +1,163 @@
+body {
+    background: #FFFFFF;
+}
+
+h1 {
+    text-align: center;
+}
+
+.div-img {
+    width: 425px;
+    float: left;
+}
+
+.div-model-img-front, .div-model-img-back {
+    background-image: url("../../resources/images/model-img.jpg");
+    width: 425px;
+    height: 258px;
+    margin: 0 auto;
+}
+
+.div-model-wall {
+    width: 425px;
+    height: 258px;
+}
+
+.img-logo-front {
+    width: 100px;
+    height: 100px;
+}
+
+.img-logo-back {
+    width: 100px;
+    height: 100px;
+}
+
+.slc-font-family-names {
+    width: 108px;
+}
+
+.ipt-word {
+    width: 346px;
+    height: 18px;
+    margin: 0 auto;
+    display: block;
+    float: left;
+}
+
+.a-word-clear {
+    display: block;
+    float: right;
+    width: 18px;
+    height: 18px;
+    margin-top: 3px;
+}
+
+.img-word-clear {
+    width: 18px;
+    height: 18px;
+}
+
+.div-setting-select {
+    width: 375px;
+    margin: 0 auto;
+    background: blanchedalmond;
+    padding: 10px 16px;
+}
+
+.div-setting-word {
+    width: 375px;
+    margin: 10px auto;
+    padding: 10px 16px;
+}
+
+.div-setting-word-top {
+    width: 370px;
+    margin: 0 auto;
+}
+
+.div-setting-img {
+    width: 375px;
+    height: 60px;
+    margin: 10px auto;
+    padding: 10px 16px;
+}
+
+.img-logo-front-show {
+    width: 60px;
+    height: 60px;
+    float: left;
+}
+
+.span-slider {
+    background: khaki;
+    border-color: khaki;
+    width: 180px;
+    margin: 10px 70px;
+}
+.span-adjust-size{
+    font-size: 18px;
+    padding-left: 12px;
+}
+.div-word-setting {
+    width: 370px;
+    margin: 0 auto;
+}
+
+.div-setting {
+    float: left;
+    width: 425px;
+    height: 100%;
+}
+
+.div-setting-front {
+    width: 425px;
+}
+
+.div-placeholder {
+    display: block;
+    width: 425px;
+    height: 40px;
+}
+
+.div-main {
+    width: 882px;
+    height: 700px;
+    margin: 0 auto;
+    background: #E8E8E8;
+    padding: 16px;
+}
+
+.img-move {
+    position: absolute;
+    padding: 1px;
+}
+
+.img-border-show {
+    border: firebrick 1px dashed;
+    padding: 0;
+}
+.div-add{
+    width: 425px;
+    height: 64px;
+    margin: 0 auto;
+    padding-top: 32px;
+}
+.ipt-add-word{
+    width: 150px;
+    margin-right: 32px;
+    background: coral;
+    border-color: coral;
+    display: block;
+    color: white;
+    float: right;
+}
+.ipt-add-logo{
+    width: 150px;
+    margin-left: 32px;
+    background: coral;
+    border-color: coral;
+    display: block;
+    color: white;
+    float: left;
+}
