@@ -27,7 +27,7 @@ public class WebServiceController {
         Map<String,Object> map = new HashMap<String, Object>();
         map.put("code","1");
         map.put("message","success");
-        map.put("result",new User("123",21,name));
+        map.put("result",new User("hello world!",21,name));
         return map;
     }
 

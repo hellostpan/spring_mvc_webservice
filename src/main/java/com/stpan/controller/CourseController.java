@@ -2,9 +2,13 @@ package com.stpan.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stpan.entites.BusinessCard;
 import com.stpan.entites.User;
 import com.stpan.service.UserService;
 import com.stpan.utils.FileUtil;
+import com.stpan.utils.FontUtil;
+import com.stpan.utils.JsonUtil;
+import com.stpan.utils.TestUtil;
 import com.sun.javafx.css.converters.FontConverter;
 import com.sun.javafx.tk.*;
 import org.apache.commons.io.FileUtils;
@@ -147,30 +151,36 @@ public class CourseController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/getTextPng", method = RequestMethod.POST)
-    public String getTextPng( String word,int fontColorR,int fontColorG,int fontColorB,int fontSize,boolean isBold,boolean isItalic,String fontFamilyName, HttpServletRequest request) throws IOException {
-        /*System.out.println("word: "+word);
-        System.out.println("fontColorR: "+fontColorR);
-        System.out.println("fontColorG: "+fontColorG);
-        System.out.println("fontColorB: "+fontColorB);
-        System.out.println("fontSize: "+fontSize);
-        System.out.println("isBold: "+isBold);
-        System.out.println("isItalic: "+isItalic);
-        System.out.println("fontFamilyName: "+fontFamilyName);*/
+    @RequestMapping(value = "findDesignData")
+    public String findDesignData(){
+        return TestUtil.getTestData();
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "findData")
+    public String findData(){
+        return TestUtil.findTestData();
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/generatePng", method = RequestMethod.POST)
+    public String getTextPng(String jsonStr, HttpServletRequest request) throws IOException {
+        //System.out.println("word: "+jsonStr);
+        BusinessCard card = JsonUtil.toObject(jsonStr);
         File file = FileUtil.getFileDir(request);
         int fontStyle = Font.PLAIN;
-        if (isBold){
+        if (card.isBold()){
             fontStyle+=Font.BOLD;
         }
-        if (isItalic){
+        if (card.isItalic()){
             fontStyle+=Font.ITALIC;
         }
 
         String imageName = System.currentTimeMillis()+".png";
         File image = new File(file.getAbsolutePath()+"/"+imageName);
-        getPng(word,image,new Color(fontColorR,fontColorG,fontColorB),fontStyle,fontSize,fontFamilyName);
+        getPng(card.getWord(),image,new Color(Integer.parseInt(card.getFontColor(),16)),fontStyle,card.getFontSize(),card.getFontFamily());
         String result = "http://192.168.1.113/temp_file/"+imageName;
-        System.out.println(result);
+        //System.out.println(result);
         return result;
     }
 

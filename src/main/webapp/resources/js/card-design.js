@@ -1,39 +1,16 @@
 var wordImg;
-var params = {
-    front: {
-        leftTopX: 0,
-        leftTopY: 0,
-        rightTopX: 0,
-        rightTopY: 0,
-        leftBottomX: 0,
-        leftBottomY: 0,
-        rightBottomX: 0,
-        rightBottomY: 0
-    },
-    back: {
-        leftTopX: 0,
-        leftTopY: 0,
-        rightTopX: 0,
-        rightTopY: 0,
-        leftBottomX: 0,
-        leftBottomY: 0,
-        rightBottomX: 0,
-        rightBottomY: 0
-    },
-    currentX: 0,
-    currentY: 0
-};
-var word = "";
-var isBold = false;
-var isItalic = false;
-var fontSize = 20;
-var fontColorR = 0;
-var fontColorG = 0;
-var fontColorB = 0;
-var fontFamilyName = "";
 var settingWord = '<div class="div-word-setting"><select class="slc-font-family-names" onchange="fontFamilyChange(this)"></select><select class="slc-font-size" onchange="fontSizeChange(this)"><option value="6">6磅</option><option value="7">7磅</option><option value="8">8磅</option> <option value="9">9磅</option> <option value="10">10磅</option> <option value="11">11磅</option> <option value="12">12磅</option> <option value="13">13磅</option> <option value="14">14磅</option> <option value="16">16磅</option> <option value="18">18磅</option> <option value="20">20磅</option> <option value="22">22磅</option> <option value="24">24磅</option> <option value="26">26磅</option> <option value="28">28磅</option> <option value="30">30磅</option> <option value="32">32磅</option> <option value="34">34磅</option> <option value="36">36磅</option> <option value="38">38磅</option> <option value="40">40磅</option> <option value="42">42磅</option> <option value="44">44磅</option> <option value="46">46磅</option> <option value="48">48磅</option> <option value="50">50磅</option> <option value="52">52磅</option> </select><label><input type="checkbox" class="ipt-bold" id="cb-bold" onclick="boldClick(this)">加粗</label><label><input type="checkbox" class="ipt-italic" onclick="italicClick(this)">斜体</label> <input type="hidden" id="hidden-input" class="ipt-color" value="#000000"></div>';
 var op = "";
+var img = {
+    width: 100,
+    height: 100
+};
+var BCards = new Array();
+var businessCard;
+var base = {};
 $(function () {
+    //location.href = "test.jsp";
+
     $.ajax({
         type: "POST",
         url: "hello/findFontFamilyNames",
@@ -41,255 +18,459 @@ $(function () {
         success: function (data) {
             // console.log(data);
             var obj = eval(data);
+            var length = obj.length;
             var optionValue;
-            for (optionValue in obj) {
-                op += '<option value="' + obj[optionValue] + '">' + obj[optionValue] + '</option>';
+            for (var i = 0; i < length; i++) {
+                op += '<option value="' + obj[i] + '">' + obj[i] + '</option>';
             }
         },
         error: function (e) {
             console.log("error: " + e);
         }
     });
+
+    $.ajax({
+        type: "GET",
+        url: "hello/findDesignData",
+        success: function (data) {
+            var obj = eval('(' + data + ')');
+            var wordSize = 0;
+            var imgSize = 0;
+            var img = "";
+            var div = "";
+            var goal;
+            var length = obj.length;
+            for (var i = 0; i < length; i++) {
+                var card = obj[i];
+                BCards[i] = card;
+                if (card.front) {
+                    if (card.img) {
+                        wordSize = $(".div-setting-front .div-setting-img").length;
+                        imgSize = $(".div-model-img-front .img-logo-front").length;
+                        img = '<img src="' + card.path + '" class="img-logo-front img-move" id="img-logo-front-' + imgSize + '"onmousedown="mouseDown(this)">';
+                        div = '<div class="div-setting-img" id="div-setting-img-front-' + wordSize + '">' +
+                            '<img src="' + card.path + '" class="img-logo-front-show">' +
+                            '<span class="span-adjust-size">调整大小</span>' +
+                            '<div class="span-slider" id="slider-logo-front-' + wordSize + '"></div>' +
+                            '<a href="javascript:;" title="删除" class="a-img-clear">' +
+                            '<img class="img-img-clear" src="resources/images/ic_clear_grey600.png" onclick="clearImgClick(this)">' +
+                            '</a></div>';
+                        $(".div-model-img-front .div-model-wall").append(img);
+                        $(".div-setting-front .div-setting-list-img").append(div);
+                        initSlider("slider-logo-front-" + wordSize, card.width);
+                        goal = $("#img-logo-front-" + imgSize);
+                        goal.css({
+                            "left": card.left,
+                            "top": card.top,
+                            "width": card.width,
+                            "height": card.height
+                        });
+                        BCards[i].tid = "img-logo-front-" + imgSize;
+                    } else {
+                        wordSize = $(".div-setting-front .div-setting-word").length;
+                        imgSize = $(".div-model-img-front .img-word-front").length;
+                        img = '<img src="' + card.path + '" class="img-word-front img-move" id="img-word-front-' + imgSize + '"onmousedown="mouseDown(this)" draggable="true"/>';
+                        div = '<div class="div-setting-word" id="div-setting-word-front-' + wordSize + '">' +
+                            '<div class="div-setting-word-top">' +
+                            '<input type="text" class="ipt-word" onfocus="inputFocus(this)" onkeyup="inputKeyUp(this)" id="ipt-word-front-' + wordSize + '" value="' + card.word + '">' +
+                            '<input type="hidden" value=#' + card.fontColor + ' class="ipt-color-value">' +
+                            '<a href="javascript:;" title="删除" class="a-word-clear">' +
+                            '<img class="img-word-clear" src="resources/images/ic_clear_grey600.png" ' +
+                            'onclick="clearWordClick(this)"></a></div></div>';
+                        $(".div-model-img-front .div-model-wall").append(img);
+                        $(".div-setting-front .div-setting-list-word").append(div);
+                        goal = $("#img-word-front-" + imgSize);
+                        goal.css({
+                            "left": card.left,
+                            "top": card.top
+                        });
+                        BCards[i].tid = "img-word-front-" + imgSize;
+                    }
+                } else {
+                    if (card.img) {
+                        wordSize = $(".div-setting-back .div-setting-img").length;
+                        imgSize = $(".div-model-img-back .img-logo-back").length;
+                        img = '<img src="' + card.path + '" class="img-logo-back img-move" id="img-logo-back-' + imgSize + '"onmousedown="mouseDown(this)" draggable="true">';
+                        div = '<div class="div-setting-img" id="div-setting-img-back-' + wordSize + '">' +
+                            '<img src="' + card.path + '" class="img-logo-back-show">' +
+                            '<span class="span-adjust-size">调整大小</span>' +
+                            '<div class="span-slider" id="slider-logo-back-' + wordSize + '"></div>' +
+                            '<a href="javascript:;" title="删除" class="a-img-clear">' +
+                            '<img class="img-img-clear" src="resources/images/ic_clear_grey600.png" onclick="clearImgClick(this)">' +
+                            '</a></div>';
+                        $(".div-model-img-back .div-model-wall").append(img);
+                        $(".div-setting-back .div-setting-list-img").append(div);
+                        initSlider("slider-logo-back-" + wordSize, card.width);
+                        goal = $("#img-logo-back-" + imgSize);
+                        goal.css({
+                            "left": card.left,
+                            "top": card.top,
+                            "width": card.width,
+                            "height": card.height
+                        });
+                        BCards[i].tid = "img-logo-back-" + imgSize;
+                    } else {
+                        wordSize = $(".div-setting-back .div-setting-word").length;
+                        imgSize = $(".div-model-img-back .img-word-back").length;
+                        img = '<img src="' + card.path + '" class="img-word-back img-move" id="img-word-back-' + imgSize + '"onmousedown="mouseDown(this)" draggable="true"/>';
+                        div = '<div class="div-setting-word" id="div-setting-word-back-' + wordSize + '">' +
+                            '<div class="div-setting-word-top">' +
+                            '<input type="text" class="ipt-word" onfocus="inputFocus(this)" onkeyup="inputKeyUp(this)" id="ipt-word-back-' + wordSize + '" value="' + card.word + '">' +
+                            '<input type="hidden" value=#' + card.fontColor + ' class="ipt-color-value">' +
+                            '<a href="javascript:;" title="删除" class="a-word-clear">' +
+                            '<img class="img-word-clear" src="resources/images/ic_clear_grey600.png" ' +
+                            'onclick="clearWordClick(this)"></a></div></div>';
+                        $(".div-model-img-back .div-model-wall").append(img);
+                        $(".div-setting-back .div-setting-list-word").append(div);
+                        goal = $("#img-word-back-" + imgSize);
+                        goal.css({
+                            "left": card.left,
+                            "top": card.top
+                        });
+                        BCards[i].tid = "img-word-back-" + imgSize;
+                    }
+                }
+            }
+            ReEventBind();
+        },
+        error: function (e) {
+            console.log("findDesignData: " + e);
+        }
+    });
+
+    //检测浏览器屏幕的放大缩小事件
+    $(window).resize(function () {
+
+    });
+
     $(".ipt-save").click(function () {
         $(".div-model-wall").find("img").each(function () {
             $(this).removeClass("img-border-show");
         });
-        div2png();
+        div2canvas();
     });
 
-    $(".ipt-add-logo").click(function () {
+    $(".ipt-add-logo").each(function () {
+        $(this).click(function (event) {
+            $("#image").click();
+        });
+    });
+
+    $("#image").change(function (event) {
+        var files = event.target.files;
+        var file;
+        if (files && files.length > 0) {
+            file = files[0];
+            var readFile = new FileReader();
+            readFile.onload = function (e) {
+                var wordSize;
+                var imgSize;
+                var img;
+                var div;
+                var lsObj = new WordCard();
+                if ($(".div-setting-back").is(":hidden")) {
+                    wordSize = $(".div-setting-front .div-setting-img").length;
+                    imgSize = $(".div-model-img-front .img-logo-front").length;
+                    img = '<img src="' + e.target.result + '" class="img-logo-front img-move" id="img-logo-front-' + imgSize + '"onmousedown="mouseDown(this)">';
+                    div = '<div class="div-setting-img" id="div-setting-img-front-' + wordSize + '">' +
+                        '<img src="' + e.target.result + '" class="img-logo-front-show">' +
+                        '<span class="span-adjust-size">调整大小</span>' +
+                        '<div class="span-slider" id="slider-logo-front-' + wordSize + '"></div>' +
+                        '<a href="javascript:;" title="删除" class="a-img-clear">' +
+                        '<img class="img-img-clear" src="resources/images/ic_clear_grey600.png" onclick="clearImgClick(this)">' +
+                        '</a></div>';
+                    $(".div-model-img-front .div-model-wall").append(img);
+                    $(".div-setting-front .div-setting-list-img").append(div);
+                    initSlider("slider-logo-front-" + wordSize, 100);
+                    lsObj.tid = "img-logo-front-" + imgSize;
+                    lsObj.width = 100;
+                    lsObj.height = 100;
+                } else {
+                    wordSize = $(".div-setting-back .div-setting-img").length;
+                    imgSize = $(".div-model-img-back .img-logo-back").length;
+                    img = '<img src="' + e.target.result + '" class="img-logo-back img-move" id="img-logo-back-' + imgSize + '"onmousedown="mouseDown(this)" draggable="true">';
+                    div = '<div class="div-setting-img" id="div-setting-img-back-' + wordSize + '">' +
+                        '<img src="' + e.target.result + '" class="img-logo-back-show">' +
+                        '<span class="span-adjust-size">调整大小</span>' +
+                        '<div class="span-slider" id="slider-logo-back-' + wordSize + '"></div>' +
+                        '<a href="javascript:;" title="删除" class="a-img-clear">' +
+                        '<img class="img-img-clear" src="resources/images/ic_clear_grey600.png" onclick="clearImgClick(this)">' +
+                        '</a></div>';
+                    $(".div-model-img-back .div-model-wall").append(img);
+                    $(".div-setting-back .div-setting-list-img").append(div);
+                    initSlider("slider-logo-back-" + wordSize, 100);
+                    lsObj.tid = "img-logo-back-" + imgSize;
+                    lsObj.width = 100;
+                    lsObj.height = 100;
+                }
+                BCards.push(lsObj);
+                var ls = BCards;
+                //ReEventBind();
+            };
+            readFile.readAsDataURL(file);
+
+        }
 
     });
+
     $(".ipt-add-word").click(function () {
-        var wordSize = $(".div-setting-word").length;
-        var imgSize = $(".img-word-front").length;
-        var obj = '<div class="div-setting-word" id="div-setting-word-' + wordSize + '">' +
-            '<div class="div-setting-word-top"><input type="text" class="ipt-word" id="ipt-word-front-' + wordSize + '" value="请输入文字">' +
-            '<a href="javascript:;" title="删除" class="a-word-clear"><img class="img-word-clear" src="resources/images/ic_clear_grey600.png"></a></div></div>';
-        var lsImg = '<img src="resources/images/please_input_word.png" class="img-word-front" id="img-word-front-' + imgSize + '" draggable="true"/>';
-        $("#div-model-wall-front").append(lsImg);
-        $(".div-word-list").append(obj);
-        initEvent();
+        var wordSize;
+        var imgSize;
+        var img;
+        var div;
+        var lsObj = new WordCard();
+        if ($(".div-setting-back").is(":hidden")) {
+            wordSize = $(".div-setting-front .div-setting-word").length;
+            imgSize = $(".div-model-img-front .img-word-front").length;
+            img = '<img src="resources/images/please_input_word.png" class="img-word-front img-move" id="img-word-front-' + imgSize + '"onmousedown="mouseDown(this)" draggable="true"/>';
+            div = '<div class="div-setting-word" id="div-setting-word-front-' + wordSize + '">' +
+                '<div class="div-setting-word-top">' +
+                '<input type="text" class="ipt-word" onfocus="inputFocus(this)" onkeyup="inputKeyUp(this)" id="ipt-word-front-' + wordSize + '" value="请输入文字">' +
+                '<input type="hidden" value="#000000" class="ipt-color-value">' +
+                '<a href="javascript:;" title="删除" class="a-word-clear">' +
+                '<img class="img-word-clear" src="resources/images/ic_clear_grey600.png" ' +
+                'onclick="clearWordClick(this)"></a></div></div>';
+            $(".div-model-img-front .div-model-wall").append(img);
+            $(".div-setting-front .div-setting-list-word").append(div);
+            lsObj.tid = "img-word-front-" + imgSize;
+        } else {
+            wordSize = $(".div-setting-back .div-setting-word").length;
+            imgSize = $(".div-model-img-back .img-word-back").length;
+            img = '<img src="resources/images/please_input_word.png" class="img-word-back img-move" id="img-word-back-' + imgSize + '"onmousedown="mouseDown(this)" draggable="true"/>';
+            div = '<div class="div-setting-word" id="div-setting-word-back-' + wordSize + '">' +
+                '<div class="div-setting-word-top">' +
+                '<input type="text" class="ipt-word" onfocus="inputFocus(this)" onkeyup="inputKeyUp(this)" id="ipt-word-back-' + wordSize + '" value="请输入文字">' +
+                '<input type="hidden" value="#000000" class="ipt-color-value">' +
+                '<a href="javascript:;" title="删除" class="a-word-clear">' +
+                '<img class="img-word-clear" src="resources/images/ic_clear_grey600.png" ' +
+                'onclick="clearWordClick(this)"></a></div></div>';
+            $(".div-model-img-back .div-model-wall").append(img);
+            $(".div-setting-back .div-setting-list-word").append(div);
+            lsObj.tid = "img-word-back-" + imgSize;
+        }
+        BCards.push(lsObj);
+        for (var i = 0; i < BCards.length; i++) {
+            console.log("word: " + BCards[i].word);
+        }
+        //ReEventBind();
+
+
     });
-    initEvent();
-    initDrag();
-    initPosition();
+
+    $(".div-setting-back").hide();
 
 });
 
-function initPosition() {
-    var lsDiv = $("#div-model-wall-front");
-    var divWidth = lsDiv.width();
-    var divHeight = lsDiv.height();
-
-    params.front.leftTopX = lsDiv.offset().left;
-    params.front.leftTopY = lsDiv.offset().top;
-    params.front.leftBottomX = params.front.leftTopX;
-    params.front.leftBottomY = params.front.leftTopY + divHeight;
-
-    params.front.rightTopX = params.front.leftTopX + divWidth;
-    params.front.rightTopY = params.front.leftTopY;
-    params.front.rightBottomX = params.front.leftTopX + divWidth;
-    params.front.rightBottomY = params.front.leftTopY + divHeight;
-
-    lsDiv = $("#div-model-wall-back");
-    divWidth = lsDiv.width();
-    divHeight = lsDiv.height();
-
-    params.back.leftTopX = lsDiv.offset().left;
-    params.back.leftTopY = lsDiv.offset().top;
-    params.back.leftBottomX = params.back.leftTopX;
-    params.back.leftBottomY = params.back.leftTopY + divHeight;
-
-    params.back.rightTopX = params.back.leftTopX + divWidth;
-    params.back.rightTopY = params.back.leftTopY;
-    params.back.rightBottomX = params.back.leftTopX + divWidth;
-    params.back.rightBottomY = params.back.leftTopY + divHeight;
-
-}
-
-function initDrag() {
-    var droptarget = document.getElementById("div-model-wall-front");
-    EventUtil.addHandler(droptarget, "dragover", function (event) {
-        EventUtil.preventDefault(event);
-    });
-    EventUtil.addHandler(droptarget, "dragenter", function (event) {
-        EventUtil.preventDefault(event);
-    });
-
-    var droptarget2 = document.getElementById("div-model-wall-back");
-    EventUtil.addHandler(droptarget2, "dragover", function (event) {
-        EventUtil.preventDefault(event);
-    });
-    EventUtil.addHandler(droptarget2, "dragenter", function (event) {
-        EventUtil.preventDefault(event);
-    });
-}
-
-function initEvent() {
-    $(".span-slider").slider({
-        min: 0,
-        max: 200,
-        value: 100,
-        slide: function (event, ui) {
-            var lsImg = $(".img-logo-front");
-            console.log((lsImg.offset().left) + " : " + lsImg.offset().top);
-            lsImg.css({"width": ui.value, "height": ui.value});
-        }
-    });
-    /*$(".ipt-bold").click(function () {
-     isBold = $(this).is(":checked");
-     getTextPng(word, fontColorR, fontColorG, fontColorB, fontSize, isBold, isItalic, fontFamilyName);
-     });
-     $(".ipt-italic").click(function () {
-     isItalic = $(this).is(":checked");
-     getTextPng(word, fontColorR, fontColorG, fontColorB, fontSize, isBold, isItalic, fontFamilyName);
-     });
-     $(".slc-font-size").change(function () {
-     fontSize = $(this).val();
-     getTextPng(word, fontColorR, fontColorG, fontColorB, fontSize, isBold, isItalic, fontFamilyName);
-     });
-     $(".slc-font-family-names").change(function () {
-     fontFamilyName = $(this).val();
-     getTextPng(word, fontColorR, fontColorG, fontColorB, fontSize, isBold, isItalic, fontFamilyName);
-     });*/
-
-    $(".ipt-word").each(function () {
-        $(this).focus(function (event) {
-            word = event.target.value;
-            wordImg = $("#img" + event.target.id.substring(3));
-            var lsDiv = $("#div-setting-word-0");
-            $(".div-model-wall").find("img").each(function () {
-                $(this).removeClass("img-border-show");
-            });
-            $(".div-setting-word").each(function (event) {
-                $(this).removeClass("div-setting-select")
-            });
-            $(".div-word-setting").remove();
-            $(this).parent().parent().append(settingWord);
-            $(".slc-font-family-names").append(op);
-            $(this).parent().parent().addClass("div-setting-select");
-            wordImg.addClass("img-border-show");
-
-            $(".ipt-color").minicolors({
-                control: 'hue',
-                defaultValue: $(this).attr('data-defaultValue') || '',
-                format: 'rgb',
-                inline: $(this).attr('data-inline') === 'true',
-                letterCase: 'lowercase',
-                position: 'bottom left',
-                swatches: $(this).attr('data-swatches') ? $(this).attr('data-swatches').split('|') : [],
-                change: function (rgb, opacity) {
-                    var str = rgb.substring(4, rgb.indexOf(")")).split(",");
-                    fontColorR = parseInt(str[0]);
-                    fontColorG = parseInt(str[1]);
-                    fontColorB = parseInt(str[2]);
-                    getTextPng(word, fontColorR, fontColorG, fontColorB, fontSize, isBold, isItalic, fontFamilyName);
-                },
-                theme: 'default'
-            });
-        });
-
-        $(this).keyup(function (event) {
-            if ($(this).val() != word) {
-                word = $(this).val();
-                if (word.length == 0) {
-                    wordImg.attr("src", "resources/images/noword.png");
-                } else {
-                    getTextPng(word, fontColorR, fontColorG, fontColorB, fontSize, isBold, isItalic, fontFamilyName);
-                }
-            }
-        });
-    });
-
-    $(".img-word-clear").each(function () {
-        $(this).click(function (event) {
-            $(this).parent().parent().parent().remove();
-            var imgId = "img-word-front-" + $(this).parent().parent().parent().attr("id").split("-")[3];
-            $("#" + imgId).remove();
-        });
-    });
-    //添加模版中的logo和文字事件
-    $(".div-model-wall").find("img").each(function () {
-        $(this).addClass("img-move");
-        $(this).on("dragstart", function (event) {
-            dragStart(event);
-        });
-        $(this).on("dragend", function (event) {
-            dragEnd(event);
-        });
-        $(this).on("mousedown", function (event) {
-            var imgId = $(this).attr("id");
-            if (imgId.indexOf("logo") >= 0) {
-                $(".div-model-wall").find("img").each(function () {
-                    $(this).removeClass("img-border-show");
-                });
-                $(this).addClass("img-border-show");
-            } else {
-                $("#ipt" + $(this).attr("id").substring(3)).focus();
-            }
-
+function ReEventBind() {
+    $(".img-move").each(function (event) {
+        $(this).dragging({
+            move: 'both',
+            randomPosition: false
         })
     });
 }
 
-var EventUtil = {
-    addHandler: function (element, type, handler) {
-        if (element.addEventListener) {
-            element.addEventListener(type, handler, false);
-        } else if (element.attachEvent) {
-            element.attachEvent("on" + type, handler);
-        } else {
-            element["on" + type] = handler;
+Array.prototype.indexOfTid = function (val) {
+    var length = this.length;
+    for (var i = 0; i < length; i++) {
+        if (this[i].tid == val) {
+            return i;
         }
-    },
-    preventDefault: function (event) {
-        if (event.preventDefault) {
-            event.preventDefault();
-        } else {
-            event.returnValue = false;
-        }
+    }
+    return -1;
+};
+
+Array.prototype.removeOfTid = function (val) {
+    var index = this.indexOfTid(val);
+    if (index > -1) {
+        this.splice(index, 1);
     }
 };
 
+Array.prototype.getOfTid = function (val) {
+    var index = this.indexOfTid(val);
+    if (index > -1) {
+        return this[index];
+    }
+};
+
+function WordCard(tid) {
+    this.bold = false;
+    this.italic = false;
+    this.word = "请输入文字";
+    this.fontFamily = "宋体";
+    this.fontColor = "000000";
+    this.img = false;
+    this.fontSize = 14;
+    this.top = 0;
+    this.left = 0;
+    this.tid = tid;
+    this.path = "resources/images/please_input_word.png";
+}
+
+function inputKeyUp(obj) {
+    console.log("card" + businessCard.word);
+    if ($(obj).val() != businessCard.word) {
+        businessCard.word = $(obj).val();
+        if (businessCard.word.length == 0) {
+            wordImg.attr("src", "resources/images/noword.png");
+        } else {
+            generatePng(businessCard);
+        }
+    }
+}
+
+function inputFocus(obj) {
+    var imgId = "img" + obj.id.substring(3);
+    businessCard = BCards.getOfTid(imgId);
+    wordImg = $("#" + imgId);
+    $(".div-model-wall").find("img").each(function () {
+        $(this).removeClass("img-border-show");
+    });
+    $(".div-setting-word").each(function (event) {
+        $(this).removeClass("div-setting-select")
+    });
+    $(".div-word-setting").remove();
+    $(obj).parent().parent().append(settingWord);
+    $(".slc-font-family-names").append(op);
+    $(".slc-font-family-names").val(businessCard.fontFamily);
+    $(".slc-font-size").val(businessCard.fontSize);
+    $(".ipt-bold").attr("checked", businessCard.bold);
+    $(".ipt-italic").attr("checked", businessCard.italic);
+    $(obj).parent().parent().addClass("div-setting-select");
+    wordImg.addClass("img-border-show");
+    $(".ipt-color").val("#" + businessCard.fontColor);
+    $(".ipt-color").minicolors({
+        control: 'hue',
+        defaultValue: $(this).attr('data-defaultValue') || '',
+        format: 'hex',
+        inline: $(this).attr('data-inline') === 'true',
+        letterCase: 'lowercase',
+        position: 'bottom right',
+        swatches: $(this).attr('data-swatches') ? $(this).attr('data-swatches').split('|') : [],
+        change: function (result, opacity) {
+            businessCard.fontColor = result.substring(1);
+            generatePng(businessCard);
+        },
+        theme: 'default'
+    });
+}
+
+function mouseDown(obj) {
+    var imgId = $(obj).attr("id");
+    if (imgId.indexOf("logo") >= 0) {
+        $(".div-model-wall").find("img").each(function () {
+            $(this).removeClass("img-border-show");
+        });
+        $(obj).addClass("img-border-show");
+    } else {
+        $("#ipt" + $(obj).attr("id").substring(3)).focus();
+    }
+    $(obj).dragging({
+        move: 'both',
+        randomPosition: false
+    })
+}
+
+//选择正面背面
+function pageSelect(page) {
+    if (page == 1) {
+        $(".div-model-img-front").addClass("div-border");
+        $(".div-model-img-back").removeClass("div-border");
+        $(".div-page-change li:last").removeClass("li-select");
+        $(".div-page-change li:first").addClass("li-select");
+        $(".div-setting-front").show();
+        $(".div-setting-back").hide();
+        $("#div-model-wall-back .img-move").each(function () {
+            $(this).removeClass("img-border-show");
+        });
+    } else {
+        $(".div-model-img-front").removeClass("div-border");
+        $(".div-model-img-back").addClass("div-border");
+        $(".div-page-change li:first").removeClass("li-select");
+        $(".div-page-change li:last").addClass("li-select");
+        $(".div-setting-front").hide();
+        $(".div-setting-back").show();
+        $("#div-model-wall-front .img-move").each(function () {
+            $(this).removeClass("img-border-show");
+        });
+    }
+}
+
+//初始化滑动条
+function initSlider(id, defaultValue) {
+    $("#" + id).slider({
+        min: 0,
+        max: 200,
+        value: defaultValue,
+        slide: function (event, ui) {
+            var imgId = "img" + id.substring(6);
+            var lsImg = $("#" + imgId);
+            businessCard = BCards.getOfTid(imgId);
+            var width = ui.value;
+            var height = businessCard.height / businessCard.width * width;
+            lsImg.css({"width": width, "height": height});
+            lsImg.addClass("img-border-show");
+            //ReEventBind();
+        }
+    });
+}
+
+//是否加粗
 function boldClick(obj) {
-    isBold = $(obj).is(":checked");
-    getTextPng(word, fontColorR, fontColorG, fontColorB, fontSize, isBold, isItalic, fontFamilyName);
+    businessCard.bold = $(obj).is(":checked");
+    generatePng(businessCard);
 }
 
+//是否斜体
 function italicClick(obj) {
-    isItalic = $(obj).is(":checked");
-    getTextPng(word, fontColorR, fontColorG, fontColorB, fontSize, isBold, isItalic, fontFamilyName);
+    businessCard.italic = $(obj).is(":checked");
+    generatePng(businessCard);
 }
 
+//字体改变
 function fontFamilyChange(obj) {
-    fontFamilyName = obj.value;
-    getTextPng(word, fontColorR, fontColorG, fontColorB, fontSize, isBold, isItalic, fontFamilyName);
+    businessCard.fontFamily = obj.value;
+    generatePng(businessCard);
 }
 
+//文字大小改变
 function fontSizeChange(obj) {
-    fontSize = $(obj).val();
-    getTextPng(word, fontColorR, fontColorG, fontColorB, fontSize, isBold, isItalic, fontFamilyName);
+    businessCard.fontSize = $(obj).val();
+    generatePng(businessCard);
 }
 
-function getTextPng(word, fontColorR, fontColorG, fontColorB, fontSize, isBold, isItalic, fontFamilyName) {
-    console.log(word + " " + fontColorR + " " + fontColorG + " " + fontColorB + " " + fontSize + " " + isBold + " " + isItalic + " " + fontFamilyName);
+//删除文字
+function clearWordClick(obj) {
+    $(obj).parent().parent().parent().remove();
+    var ids = $(obj).parent().parent().parent().attr("id").split("-");
+    var imgId = "img-word-" + ids[3] + "-" + ids[4];
+    BCards.removeOfTid(imgId);
+    $("#" + imgId).remove();
+}
+
+//删除图片
+function clearImgClick(obj) {
+    $(obj).parent().parent().remove();
+    var ids = $(obj).parent().parent().attr("id").split("-");
+    var imgId = "img-logo-" + ids[3] + "-" + ids[4];
+    BCards.removeOfTid(imgId);
+    $("#" + imgId).remove();
+}
+
+//根据文字获取服务端生成的图片地址
+function generatePng(obj) {
+    var jsonStr = JSON.stringify(obj);
+    console.log(jsonStr);
     $.ajax({
         type: "POST",
-        url: "hello/getTextPng",
+        url: "hello/generatePng",
         data: {
-            word: word,
-            fontColorR: fontColorR,
-            fontColorG: fontColorG,
-            fontColorB: fontColorB,
-            fontSize: fontSize,
-            isBold: isBold,
-            isItalic: isItalic,
-            fontFamilyName: fontFamilyName
+            jsonStr: jsonStr
         },
         success: function (data) {
             console.log(data);
-            wordImg.attr("src", data);
+            $("#" + obj.tid).attr("src", data);
         },
         error: function (error) {
             console.log("error: " + error);
@@ -297,64 +478,33 @@ function getTextPng(word, fontColorR, fontColorG, fontColorB, fontSize, isBold, 
     })
 }
 
-//拖动开始
-function dragStart(event) {
-    params.currentX = parseInt(event.screenX) - parseInt(event.target.offsetLeft);
-    params.currentY = parseInt(event.screenY) - parseInt(event.target.offsetTop);
-}
-//拖动中
-function dragging(event) {
-
-}
-//拖动结束
-function dragEnd(event) {
-    var lsLeft = event.screenX - params.currentX;
-    var lsTop = event.screenY - params.currentY;
-    if ("div-model-wall-back" == event.target.parentElement.id) {
-        if (lsLeft < params.back.leftTopX) {
-            lsLeft = params.back.leftTopX;
-        }
-        if ((lsLeft + event.target.width) > params.back.rightTopX) {
-            lsLeft = params.back.rightTopX - event.target.width;
-        }
-        if (lsTop < params.back.leftTopY) {
-            lsTop = params.back.leftTopY;
-        }
-        if ((lsTop + event.target.height) > params.back.leftBottomY) {
-            lsTop = params.back.leftBottomY - event.target.height;
-        }
-    } else {
-        if (lsLeft < params.front.leftTopX) {
-            lsLeft = params.front.leftTopX;
-        }
-        if ((lsLeft + event.target.width) > params.front.rightTopX) {
-            lsLeft = params.front.rightTopX - event.target.width;
-        }
-        if (lsTop < params.front.leftTopY) {
-            lsTop = params.front.leftTopY;
-        }
-        if ((lsTop + event.target.height) > params.front.leftBottomY) {
-            lsTop = params.front.leftBottomY - event.target.height;
-        }
-    }
-    event.target.style.left = lsLeft + "px";
-    event.target.style.top = lsTop + "px";
-}
-
-function div2png() {
+//将选定的div内容转成canvas
+function div2canvas() {
     html2canvas($(".div-model-img-front")[0], {
         onrendered: function (canvas) {
-            uploadImg(canvas);
+            uploadImg(canvas, 1);
         }
     });
     html2canvas($(".div-model-img-back")[0], {
         onrendered: function (canvas) {
-            uploadImg(canvas);
+            uploadImg(canvas, 2);
         }
     })
 }
-function uploadImg(canvas) {
+//上传图片
+function uploadImg(canvas, page) {
     var baseStr = canvas.toDataURL("image/png", 1);
+    if (page == 1) {
+        base.front = baseStr;
+    } else {
+        base.back = baseStr;
+        var lsDoc = new jsPDF();
+        lsDoc.addImage(base.front, 'png', 10, 20/*,80,48*/);
+        lsDoc.addImage(base.back, 10, 100);
+        lsDoc.save("tessdet.pdf");
+    }
+
+
     var blob = dataURLtoBlob(baseStr, "facecard.png");
     var xhr = new XMLHttpRequest();
     var formData = needsFormDataShim ? new FormDataShim() : new FormData();
@@ -375,7 +525,6 @@ function uploadImg(canvas) {
     xhr.setRequestHeader("X_FILENAME", blob.name);
     xhr.send(formData);
 }
-
 
 function dataURLtoBlob(data, fileName) {
     var tmp = data.split(',');
